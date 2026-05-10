@@ -1,0 +1,17 @@
+-- 1. Identifying transactions missing in the bank gateway
+SELECT 
+    l.transaction_id, 
+    l.merchant_id, 
+    l.amount, 
+    l.transaction_date
+FROM internal_ledger l
+LEFT JOIN gateway_export g ON l.transaction_id = g.transaction_id
+WHERE g.transaction_id IS NULL;
+
+-- 2. Counting total discrepancies per merchant for business impact
+SELECT 
+    merchant_id, 
+    COUNT(*) AS total_missing_payments
+FROM internal_ledger
+WHERE transaction_id NOT IN (SELECT transaction_id FROM gateway_export)
+GROUP BY merchant_id;
